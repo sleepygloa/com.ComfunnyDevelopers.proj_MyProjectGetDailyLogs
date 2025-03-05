@@ -75,6 +75,8 @@ cd MyProjectGetDailyLogs/backend
 
 > **이미지 1: 애플리케이션 날짜별 로그**  
 > ![Sample Image 1](./img_log.png)
+> ![Sample Image 1](./video_logs.gif)
 >
 > **이미지 2: 실시간 서버 로그**  
 > ![Sample Image 2](./img_realtime.png)
+> ![Sample Image 2](./video_realtime.gif)
