@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: MyProjectGetDailyLogs
+
+server:
+  port: 8080
+
+ssh:
+  user: ${SSH_USER}
+  password: ${SSH_PASSWORD}
+  host: ${SSH_HOST}
+  port: ${SSH_PORT}
+  # ? ??? tomcat ?? ??
+  web-log-path: /usr/local/tomcat/logs/catalina.out
+  # ????? ??? tomcat ?? ??
+  deliveryapp-log-path: /usr/local/tomcat_app/logs/catalina.out
