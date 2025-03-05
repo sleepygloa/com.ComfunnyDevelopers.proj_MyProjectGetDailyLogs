@@ -70,7 +70,7 @@ MyProjectGetDailyLogs는 **웹 서버**와 **배송기사앱 서버** 두 종류
 ```bash
 git clone <repository-url>
 cd MyProjectGetDailyLogs/backend
-
+```
 
 
 > **이미지 1: 애플리케이션 날짜별 로그**  
