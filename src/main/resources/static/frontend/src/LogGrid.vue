@@ -103,7 +103,7 @@ const fetchDateRange = () => {
 // 각 날짜별로 서버에 로그 파일이 존재하는지 체크하는 함수
 const checkFileStatus = async (row) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/logs/fileStatus`, {
+    const response = await axios.get(`http://localhost:8099/api/logs/fileStatus`, {
       params: { date: row.date, server: selectedServer.value }
     });
     row.status = response.data.exists ? "" : "X";
@@ -123,7 +123,7 @@ const updateFileStatuses = async () => {
 // 개별 다운로드 함수: 백엔드의 파일 다운로드 API 호출
 const downloadLogFromServer = async (row) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/logs/downloadFile`, {
+    const response = await axios.get(`http://localhost:8099/api/logs/downloadFile`, {
       params: { date: row.date, server: selectedServer.value },
       responseType: 'blob'
     });
@@ -146,7 +146,7 @@ const downloadLogFromServer = async (row) => {
 // 개별 로그 보기 함수: 백엔드의 로그 내용 API 호출
 const viewLogFromServer = async (row) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/logs`, {
+    const response = await axios.get(`http://localhost:8099/api/logs`, {
       params: { date: row.date, server: selectedServer.value }
     });
     selectedLogContent.value = response.data;

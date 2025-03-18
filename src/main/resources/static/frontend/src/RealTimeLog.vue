@@ -28,7 +28,7 @@ const selectedServer = ref("web");
  */
 const pollLogs = async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/logs/poll', {
+    const response = await axios.get('http://localhost:8099/api/logs/poll', {
       params: { duration: 10, server: selectedServer.value }
     });
     // 응답이 텍스트 형태라면 줄 단위로 분리 후, 빈 줄은 제외하여 배열에 추가합니다.

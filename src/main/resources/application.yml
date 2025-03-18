@@ -3,7 +3,7 @@ spring:
     name: MyProjectGetDailyLogs
 
 server:
-  port: 8080
+  port: 8099
 
 ssh:
   user: ${SSH_USER}
