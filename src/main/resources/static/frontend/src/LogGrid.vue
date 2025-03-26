@@ -48,13 +48,13 @@
     </div>
 
     <!-- 로그 내용 영역 -->
-    <div class="card log-area">
+    <div class="card2 log-area">
       <h2>로그 내용 (전체)</h2>
       <pre class="log-content">{{ selectedLogContent }}</pre>
     </div>
 
     <!-- 에러 로그 영역 -->
-    <div class="card log-area">
+    <div class="card2 log-area">
       <h2>에러 로그</h2>
       <pre class="log-content error">{{ errorLogs }}</pre>
     </div>
@@ -220,6 +220,16 @@ select {
 
 /* 카드 스타일: 옵션, 테이블, 로그 영역 등에 사용 */
 .card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  height:250px;
+  overflow-y: auto;
+}
+.card2 {
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import axios from 'axios';
+import moment from 'moment';
 
 // 실시간 로그를 저장할 배열
 const logs = ref([]);
@@ -9,7 +10,7 @@ const logs = ref([]);
 let pollIntervalId = null;
 
 // 기본 폴링 간격 (밀리초 단위)
-const POLL_INTERVAL_DEFAULT = 10000; // 기본: 10초
+const POLL_INTERVAL_DEFAULT = 10000; // 10초
 const pollingInterval = ref(POLL_INTERVAL_DEFAULT);
 
 // 사용 가능한 폴링 간격 옵션 (예: 5초, 10초, 30초)
@@ -19,25 +20,44 @@ const pollingOptions = [
   { label: "30초", value: 30000 }
 ];
 
-// 서버 선택 변수 (기본값: "web")
+// 서버 선택 변수 (기본: "web")
 const selectedServer = ref("web");
 
+// 화면에 처음 진입한 시각을 기록 (moment 객체)
+const screenEntryTime = moment();
+
+// 현재 폴링 시작 시각 (화면 진입 시각을 pollingInterval 단위로 내림 처리)
+const currentPollStart = ref(
+  moment(Math.floor(screenEntryTime.valueOf() / pollingInterval.value) * pollingInterval.value)
+);
+
 /**
- * 백엔드 API를 호출하여 최근 10초 동안 발생한 로그를 가져와 logs 배열에 추가합니다.
- * 백엔드 API: GET /api/logs/poll?duration=10&server={selectedServer}
+ * 백엔드 API를 호출하여 현재 인터벌(예: [startTime, endTime])에 해당하는 로그만 가져옵니다.
+ * startTime과 endTime은 ISO 형식(예: "2025-03-26 12:48:00", "2025-03-26 12:48:09.999")으로 전송됩니다.
  */
 const pollLogs = async () => {
+  // 현재 폴링 구간 계산
+  const startTime = currentPollStart.value.format("YYYY-MM-DD HH:mm:ss");
+  // 끝 시각: 시작 시각 + pollingInterval - 1 밀리초
+  const endTime = currentPollStart.value.clone().add(pollingInterval.value, "milliseconds").subtract(1, "milliseconds").format("YYYY-MM-DD HH:mm:ss.SSS");
+
   try {
+  console.log('poll')
     const response = await axios.get('http://localhost:8099/api/logs/poll', {
-      params: { duration: 10, server: selectedServer.value }
+      params: {
+        startTime,
+        endTime,
+        server: selectedServer.value
+      }
     });
-    // 응답이 텍스트 형태라면 줄 단위로 분리 후, 빈 줄은 제외하여 배열에 추가합니다.
+    // 응답을 줄 단위로 분리하고, 빈 줄은 제외
     const newLogs = response.data.split('\n').filter(line => line.trim() !== "");
-    logs.value.push(...newLogs);
-    // 최대 100줄을 유지하여 오래된 로그는 삭제합니다.
-    if (logs.value.length > 100) {
-      logs.value = logs.value.slice(-100);
+    // 새로운 로그가 있을 경우에만 추가
+    if(newLogs.length > 0) {
+      logs.value.push(...newLogs);
     }
+    // 다음 폴링 구간: 현재 시작 시각에 pollingInterval을 더함
+    currentPollStart.value = currentPollStart.value.clone().add(pollingInterval.value, "milliseconds");
   } catch (error) {
     console.error("로그 폴링 실패:", error);
   }
@@ -51,14 +71,17 @@ const startPolling = () => {
   if (pollIntervalId) {
     clearInterval(pollIntervalId);
   }
-  // 초기 로그 요청
+  // 초기 폴링 호출
   pollLogs();
   pollIntervalId = setInterval(pollLogs, pollingInterval.value);
 };
 
-// 서버 선택 또는 폴링 간격 변경 시, 로그 배열 초기화 후 새 인터벌로 폴링 시작
+// 서버 선택 또는 폴링 간격 변경 시, 로그 배열 초기화하고 폴링 구간 재설정 후 새 인터벌로 폴링 시작
 watch([selectedServer, pollingInterval], () => {
   logs.value = [];
+  const now = moment();
+  // 현재 시간을 pollingInterval 단위로 내림 처리하여 현재 폴링 시작 시각을 재설정
+  currentPollStart.value = moment(Math.floor(now.valueOf() / pollingInterval.value) * pollingInterval.value);
   startPolling();
 });
 
@@ -79,8 +102,6 @@ onUnmounted(() => {
 const downloadRealtimeLogs = () => {
   const logContent = logs.value.join('\n');
   const blob = new Blob([logContent], { type: 'text/plain' });
-
-  // 현재 날짜 및 시간을 기반으로 파일명 생성
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -89,7 +110,6 @@ const downloadRealtimeLogs = () => {
   const minute = String(now.getMinutes()).padStart(2, '0');
   const second = String(now.getSeconds()).padStart(2, '0');
   const filename = `realtime_${year}${month}${day}_${hour}${minute}${second}.txt`;
-
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -135,16 +155,13 @@ const downloadRealtimeLogs = () => {
   </div>
 </template>
 
-<style scoped>XS
+<style scoped>
 /* 전체 컨테이너 스타일 */
 .container {
-  width: 100%;              /* 전체 너비 사용 */
-  margin: 0;                /* 여백 제거 */
+  width: 100%;
+  margin: 0;
   padding: 1.5rem;
   background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 0;         /* 둥근 모서리 제거 (선택사항) */
-  box-shadow: none;         /* 그림자 제거 (선택사항) */
 }
 
 /* 헤더 스타일 */

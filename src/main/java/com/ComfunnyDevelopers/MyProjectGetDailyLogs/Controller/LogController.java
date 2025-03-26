@@ -6,7 +6,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +13,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * LogController는 클라이언트 요청에 따라 로그 관련 작업을 처리하는 REST API 엔드포인트를 제공합니다.
- * 주요 기능은 다음과 같습니다:
+ * 주요 기능:
  * - 전날 혹은 특정 날짜의 로그 내용을 반환 (비동기 방식, CompletableFuture 사용)
- * - 폴링 방식으로 최근 로그를 문자열로 반환 (GET /api/logs/poll)
+ * - 폴링 방식으로 지정한 시간 구간의 최근 로그를 문자열로 반환 (GET /api/logs/poll)
  * - 로그 파일을 다운로드 (GET /api/logs/downloadFile)
  * - 로그 파일의 존재 여부를 확인 (GET /api/logs/fileStatus)
  */
@@ -50,18 +49,18 @@ public class LogController {
 
     /**
      * 폴링 API 엔드포인트입니다.
-     * 지정한 기간(duration, 초) 동안의 로그를 원격 서버에서 읽어와 최근 로그 100줄을 문자열로 반환합니다.
-     * 이 예제에서는 duration 파라미터를 사용하지 않고 단순하게 최근 100줄을 반환합니다.
+     * 클라이언트는 시작 시각(startTime)과 종료 시각(endTime)을 ISO 형식 문자열로 전달합니다.
+     * 예: GET /api/logs/poll?startTime=2025-03-26%2012:48:00,000&endTime=2025-03-26%2012:48:09,999&server=web
+     * 해당 시간 구간의 로그만 필터링하여 반환합니다.
      *
-     * 요청 예시: GET /api/logs/poll?duration=10&server=web
-     *
-     * @param duration 가져올 로그 기간(초) - 현재는 기능 미사용
-     * @param server   서버 타입 ("web" 또는 "deliveryapp")
-     * @return 최근 로그 내용 문자열
+     * @param startTime 시작 시각 (예: "2025-03-26 12:48:00,000")
+     * @param endTime   종료 시각 (예: "2025-03-26 12:48:09,999")
+     * @param server    서버 타입 ("web" 또는 "deliveryapp")
+     * @return 해당 시간 구간의 로그 내용 문자열
      */
     @GetMapping("/poll")
-    public String pollLogs(@RequestParam int duration, @RequestParam String server) {
-        return logService.pollLogs(duration, server);
+    public String pollLogs(@RequestParam String startTime, @RequestParam String endTime, @RequestParam String server) {
+        return logService.pollLogs(startTime, endTime, server);
     }
 
     /**
